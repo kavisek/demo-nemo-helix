@@ -1,0 +1,12 @@
+# Dev-only override: bind-mount the generated dashboards, provisioning, and
+# migrations over the copies baked into the images, so `make dashboards` shows
+# up within 10s and new migrations apply on the next `make start`.
+# Staging and prod run exactly what is in the image tags.
+services:
+  grafana:
+    volumes:
+      - ./dashboards:/etc/grafana/dashboards:ro
+      - ./provisioning:/etc/grafana/provisioning:ro
+  flyway:
+    volumes:
+      - ../database/migrations:/flyway/sql:ro

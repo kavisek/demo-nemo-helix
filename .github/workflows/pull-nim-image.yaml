@@ -1,0 +1,98 @@
+name: Pull NIM Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: NGC image to pull
+        required: true
+        default: nvcr.io/nim/nvidia/nemotron-3.5-lightning-30b-a3b:latest
+
+env:
+  IMAGE: ${{ inputs.image || 'nvcr.io/nim/nvidia/nemotron-3.5-lightning-30b-a3b:latest' }}
+
+permissions:
+  contents: read
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost /usr/local/share/powershell /usr/share/swift
+          docker system prune -af
+          df -h / /mnt
+
+      - name: Move Docker storage to /mnt
+        run: |
+          sudo systemctl stop docker docker.socket
+          sudo mkdir -p /mnt/docker
+          config=$(sudo cat /etc/docker/daemon.json 2>/dev/null || echo '{}')
+          echo "$config" | jq '. + {"data-root": "/mnt/docker"}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl start docker
+          docker info --format 'Docker root: {{.DockerRootDir}}'
+          df -h /mnt
+
+      - name: Log in to NGC
+        uses: docker/login-action@v3
+        with:
+          registry: nvcr.io
+          username: $oauthtoken
+          password: ${{ secrets.NGC_API_KEY }}
+
+      - name: Pull image
+        id: pull
+        run: |
+          start=$(date +%s.%N)
+          docker pull "$IMAGE"
+          end=$(date +%s.%N)
+          duration=$(echo "$end - $start" | bc)
+          echo "duration=$duration" >> "$GITHUB_OUTPUT"
+          echo "Pull completed in ${duration}s"
+
+      - name: Report results
+        if: always()
+        env:
+          DURATION: ${{ steps.pull.outputs.duration }}
+          PULL_OUTCOME: ${{ steps.pull.outcome }}
+        run: |
+          if docker image inspect "$IMAGE" > /dev/null 2>&1; then
+            size_bytes=$(docker image inspect "$IMAGE" --format '{{.Size}}')
+            size_gb=$(echo "scale=2; $size_bytes / 1024^3" | bc)
+            image_id=$(docker image inspect "$IMAGE" --format '{{.Id}}')
+          else
+            size_gb="n/a"
+            image_id="n/a"
+          fi
+          if [ -n "$DURATION" ]; then
+            duration_fmt=$(printf '%.1f' "$DURATION")
+            minutes=$(echo "$DURATION / 60" | bc)
+            seconds=$(printf '%.0f' "$(echo "$DURATION - $minutes * 60" | bc)")
+            human="${minutes}m ${seconds}s"
+            if [ "$size_gb" != "n/a" ]; then
+              throughput=$(echo "scale=1; $size_bytes / 1024^2 / $DURATION" | bc)
+            else
+              throughput="n/a"
+            fi
+          else
+            duration_fmt="n/a"
+            human="n/a"
+            throughput="n/a"
+          fi
+          disk_free=$(df -h /mnt | awk 'NR==2 {print $4}')
+          {
+            echo "## NIM Image Pull Results"
+            echo ""
+            echo "| Metric | Value |"
+            echo "|---|---|"
+            echo "| Image | \`$IMAGE\` |"
+            echo "| Result | $PULL_OUTCOME |"
+            echo "| Pull time | ${duration_fmt}s ($human) |"
+            echo "| Image size (uncompressed) | ${size_gb} GB |"
+            echo "| Effective throughput | ${throughput} MB/s |"
+            echo "| Image ID | \`$image_id\` |"
+            echo "| Disk free on /mnt after pull | $disk_free |"
+            echo "| Runner | ${{ runner.os }} / ${{ runner.arch }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat "$GITHUB_STEP_SUMMARY"

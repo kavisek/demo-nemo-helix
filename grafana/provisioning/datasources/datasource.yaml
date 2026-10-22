@@ -1,0 +1,40 @@
+# Provisioned on every Grafana start. ${VARS} are expanded from Grafana's
+# environment, so one file serves every environment and runtime.
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL
+    type: grafana-postgresql-datasource
+    # Dashboards reference this uid (see dashboards-as-code/dashboards/common.py).
+    uid: postgres_ds
+    url: ${DS_POSTGRES_HOST}:5432
+    user: ${DS_POSTGRES_USER}
+    secureJsonData:
+      password: ${DS_POSTGRES_PASSWORD}
+    jsonData:
+      database: ${DS_POSTGRES_DB}
+      sslmode: disable
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1600
+      timescaledb: false
+    isDefault: true
+    editable: false
+
+  # Airflow's metadata DB for the NeMo Helix Eval Pipeline dashboard: DAG runs, task durations, and the scores the DAG stores as XComs.
+  - name: Airflow
+    type: grafana-postgresql-datasource
+    uid: airflow_ds
+    url: ${DS_AIRFLOW_HOST}:${DS_AIRFLOW_PORT}
+    user: ${DS_AIRFLOW_USER}
+    secureJsonData:
+      password: ${DS_AIRFLOW_PASSWORD}
+    jsonData:
+      database: ${DS_AIRFLOW_DB}
+      sslmode: disable
+      maxOpenConns: 10
+      postgresVersion: 1600
+      timescaledb: false
+    editable: false

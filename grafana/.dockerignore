@@ -1,0 +1,4 @@
+envs/
+dashboards-as-code/
+pgadmin-servers.json
+**/__pycache__/

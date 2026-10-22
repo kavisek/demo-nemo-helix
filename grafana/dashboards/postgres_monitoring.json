@@ -1,0 +1,1304 @@
+{
+  "__inputs": [],
+  "annotations": {
+    "list": []
+  },
+  "description": "Health of the PostgreSQL database used by Grafana's PostgreSQL data source.",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "hideControls": false,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "cacheTimeout": null,
+      "collapsed": false,
+      "datasource": null,
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          }
+        }
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 1,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "panels": [],
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Overview",
+      "transformations": [],
+      "transparent": false,
+      "type": "row"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "color": null,
+          "custom": {},
+          "decimals": null,
+          "mappings": [],
+          "noValue": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "index": 0,
+                "line": true,
+                "op": "gt",
+                "value": "null",
+                "yaxis": "left"
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 2,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "SELECT extract(epoch FROM now() - pg_postmaster_start_time()) AS uptime;",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Uptime",
+      "transformations": [],
+      "transparent": false,
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "color": null,
+          "custom": {},
+          "decimals": null,
+          "mappings": [],
+          "noValue": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "index": 0,
+                "line": true,
+                "op": "gt",
+                "value": "null",
+                "yaxis": "left"
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 3,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "SELECT count(*) AS connections FROM pg_stat_activity WHERE backend_type = 'client backend';",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Client Connections",
+      "transformations": [],
+      "transparent": false,
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "color": null,
+          "custom": {},
+          "decimals": null,
+          "mappings": [],
+          "noValue": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "index": 0,
+                "line": true,
+                "op": "gt",
+                "value": "null",
+                "yaxis": "left"
+              },
+              {
+                "color": "orange",
+                "index": 1,
+                "line": true,
+                "op": "gt",
+                "value": 70.0,
+                "yaxis": "left"
+              },
+              {
+                "color": "red",
+                "index": 2,
+                "line": true,
+                "op": "gt",
+                "value": 90.0,
+                "yaxis": "left"
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 4,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT 100.0 * count(*) / current_setting('max_connections')::int AS usage\nFROM pg_stat_activity\nWHERE backend_type = 'client backend';\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Connection Usage",
+      "transformations": [],
+      "transparent": false,
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "color": null,
+          "custom": {},
+          "decimals": null,
+          "mappings": [],
+          "noValue": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "index": 0,
+                "line": true,
+                "op": "gt",
+                "value": "null",
+                "yaxis": "left"
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 5,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "SELECT pg_database_size(current_database()) AS size;",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Database Size",
+      "transformations": [],
+      "transparent": false,
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "color": null,
+          "custom": {},
+          "decimals": null,
+          "mappings": [],
+          "noValue": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "index": 0,
+                "line": true,
+                "op": "gt",
+                "value": "null",
+                "yaxis": "left"
+              },
+              {
+                "color": "orange",
+                "index": 1,
+                "line": true,
+                "op": "gt",
+                "value": 90.0,
+                "yaxis": "left"
+              },
+              {
+                "color": "green",
+                "index": 2,
+                "line": true,
+                "op": "gt",
+                "value": 99.0,
+                "yaxis": "left"
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 6,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT 100.0 * blks_hit / nullif(blks_hit + blks_read, 0) AS cache_hit_ratio\nFROM pg_stat_database\nWHERE datname = current_database();\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Cache Hit Ratio",
+      "transformations": [],
+      "transparent": false,
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "color": null,
+          "custom": {},
+          "decimals": null,
+          "mappings": [],
+          "noValue": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "index": 0,
+                "line": true,
+                "op": "gt",
+                "value": "null",
+                "yaxis": "left"
+              },
+              {
+                "color": "red",
+                "index": 1,
+                "line": true,
+                "op": "gt",
+                "value": 1.0,
+                "yaxis": "left"
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 7,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "SELECT deadlocks FROM pg_stat_database WHERE datname = current_database();",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Deadlocks",
+      "transformations": [],
+      "transparent": false,
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "collapsed": false,
+      "datasource": null,
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          }
+        }
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 8,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "panels": [],
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Activity",
+      "transformations": [],
+      "transparent": false,
+      "type": "row"
+    },
+    {
+      "cacheTimeout": null,
+      "color": {
+        "mode": "thresholds"
+      },
+      "columns": [],
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 0,
+        "y": 6
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 9,
+      "interval": null,
+      "links": [],
+      "mappings": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT coalesce(state, 'background') AS state,\n       datname AS database_name,\n       usename AS username,\n       application_name,\n       count(*) AS connections\nFROM pg_stat_activity\nGROUP BY 1, 2, 3, 4\nORDER BY connections DESC;\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Connections by State",
+      "transformations": [],
+      "transparent": false,
+      "type": "table"
+    },
+    {
+      "cacheTimeout": null,
+      "color": {
+        "mode": "thresholds"
+      },
+      "columns": [],
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": "Non-idle client queries, longest first. running_for is in seconds.",
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 8,
+        "w": 14,
+        "x": 10,
+        "y": 6
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 10,
+      "interval": null,
+      "links": [],
+      "mappings": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT pid,\n       usename AS username,\n       datname AS database_name,\n       state,\n       extract(epoch FROM now() - query_start) AS running_for,\n       wait_event_type,\n       left(query, 200) AS query\nFROM pg_stat_activity\nWHERE state <> 'idle'\n  AND backend_type = 'client backend'\n  AND pid <> pg_backend_pid()\nORDER BY running_for DESC\nLIMIT 20;\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Long-Running Queries",
+      "transformations": [],
+      "transparent": false,
+      "type": "table"
+    },
+    {
+      "cacheTimeout": null,
+      "color": {
+        "mode": "thresholds"
+      },
+      "columns": [],
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": "Queries waiting on a lock and the pids blocking them. waiting_for is in seconds.",
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 11,
+      "interval": null,
+      "links": [],
+      "mappings": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT pid,\n       usename AS username,\n       pg_blocking_pids(pid)::text AS blocked_by,\n       datname AS database_name,\n       extract(epoch FROM now() - query_start) AS waiting_for,\n       left(query, 200) AS blocked_query\nFROM pg_stat_activity\nWHERE cardinality(pg_blocking_pids(pid)) > 0\nORDER BY waiting_for DESC;\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Blocked Queries",
+      "transformations": [],
+      "transparent": false,
+      "type": "table"
+    },
+    {
+      "cacheTimeout": null,
+      "collapsed": false,
+      "datasource": null,
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          }
+        }
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 12,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "panels": [],
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Query Performance",
+      "transformations": [],
+      "transparent": false,
+      "type": "row"
+    },
+    {
+      "cacheTimeout": null,
+      "color": {
+        "mode": "thresholds"
+      },
+      "columns": [],
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": "From pg_stat_statements. total_time and mean_time are in seconds.",
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 13,
+      "interval": null,
+      "links": [],
+      "mappings": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT left(query, 200) AS query,\n       calls,\n       total_exec_time / 1000 AS total_time,\n       mean_exec_time / 1000 AS mean_time,\n       rows\nFROM pg_stat_statements\nWHERE dbid = (SELECT oid FROM pg_database WHERE datname = current_database())\nORDER BY total_exec_time DESC\nLIMIT 20;\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Top Queries by Total Time",
+      "transformations": [],
+      "transparent": false,
+      "type": "table"
+    },
+    {
+      "cacheTimeout": null,
+      "collapsed": false,
+      "datasource": null,
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          }
+        }
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 14,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "panels": [],
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Storage",
+      "transformations": [],
+      "transparent": false,
+      "type": "row"
+    },
+    {
+      "cacheTimeout": null,
+      "color": {
+        "mode": "thresholds"
+      },
+      "columns": [],
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": "High dead_rows means autovacuum is falling behind. Sizes are in bytes.",
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 9,
+        "w": 14,
+        "x": 0,
+        "y": 32
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 15,
+      "interval": null,
+      "links": [],
+      "mappings": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT schemaname AS schema_name,\n       relname AS table_name,\n       n_live_tup AS live_rows,\n       n_dead_tup AS dead_rows,\n       pg_total_relation_size(relid) AS total_size,\n       pg_indexes_size(relid) AS index_size,\n       last_autovacuum,\n       last_autoanalyze\nFROM pg_stat_user_tables\nORDER BY total_size DESC;\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Table Sizes and Vacuum",
+      "transformations": [],
+      "transparent": false,
+      "type": "table"
+    },
+    {
+      "cacheTimeout": null,
+      "color": {
+        "mode": "thresholds"
+      },
+      "columns": [],
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "postgres_ds"
+      },
+      "description": "Indexes with zero scans are candidates for removal. Size is in bytes.",
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 9,
+        "w": 10,
+        "x": 14,
+        "y": 32
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 16,
+      "interval": null,
+      "links": [],
+      "mappings": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "postgres_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT schemaname AS schema_name,\n       relname AS table_name,\n       indexrelname AS index_name,\n       idx_scan AS scans,\n       pg_relation_size(indexrelid) AS size\nFROM pg_stat_user_indexes\nORDER BY scans ASC, size DESC;\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Index Usage",
+      "transformations": [],
+      "transparent": false,
+      "type": "table"
+    }
+  ],
+  "refresh": "30s",
+  "rows": [],
+  "schemaVersion": 12,
+  "sharedCrosshair": false,
+  "style": "dark",
+  "tags": [
+    "postgres",
+    "monitoring"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": false,
+    "nowDelay": null,
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "utc",
+  "title": "PostgreSQL Monitoring",
+  "uid": "postgres_monitoring",
+  "version": 0
+}

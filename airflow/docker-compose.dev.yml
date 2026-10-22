@@ -1,0 +1,25 @@
+# Dev-only override: bind-mount dags/, plugins/, and the repo's examples/ over the copies baked into the
+# image, so edits show up without a rebuild (the dag-processor rescans every 30s).
+# Staging and prod run exactly what is in the image tag.
+x-dev-mounts: &dev-mounts
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./plugins:/opt/airflow/plugins
+    - ../examples:/opt/airflow/examples:ro
+
+x-dev-env: &dev-env
+  AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL: "30"
+
+services:
+  airflow-apiserver:
+    <<: *dev-mounts
+  airflow-scheduler:
+    <<: *dev-mounts
+  airflow-dag-processor:
+    <<: *dev-mounts
+    environment:
+      <<: *dev-env
+  airflow-worker:
+    <<: *dev-mounts
+  airflow-triggerer:
+    <<: *dev-mounts

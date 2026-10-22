@@ -1,0 +1,501 @@
+{
+  "__inputs": [],
+  "annotations": {
+    "list": []
+  },
+  "description": "Runs of the nemo_helix_single_turn_eval_pipeline Airflow DAG and the evaluation scores they published.",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "hideControls": false,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "cacheTimeout": null,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "airflow_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "color": null,
+          "custom": {},
+          "decimals": null,
+          "mappings": [],
+          "noValue": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": ""
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 1,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "airflow_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT\n  count(*) FILTER (WHERE state = 'success') AS succeeded,\n  count(*) FILTER (WHERE state = 'failed') AS failed,\n  count(*) FILTER (WHERE state IN ('queued', 'running')) AS in_progress\nFROM dag_run\nWHERE dag_id = 'nemo_helix_single_turn_eval_pipeline' AND $__timeFilter(run_after);\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "DAG Runs",
+      "transformations": [],
+      "transparent": false,
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "airflow_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "color": null,
+          "custom": {},
+          "decimals": 3,
+          "mappings": [],
+          "noValue": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": ""
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 2,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "airflow_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT\n  (x.value ->> 'exact-match.exact-match')::float AS \"exact-match\",\n  (x.value ->> 'f1.f1')::float AS f1\nFROM xcom x JOIN dag_run dr ON dr.id = x.dag_run_id\nWHERE x.dag_id = 'nemo_helix_single_turn_eval_pipeline' AND x.task_id = 'get_scores' AND x.key = 'return_value'\nORDER BY dr.run_after DESC\nLIMIT 1;\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Latest Run Scores",
+      "transformations": [],
+      "transparent": false,
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "airflow_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": null,
+            "axisSoftMin": null,
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "log": 2,
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": false,
+            "stacking": {},
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": null,
+          "mappings": [],
+          "max": null,
+          "min": null,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": ""
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 3,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "airflow_ds"
+          },
+          "expr": "",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT dr.run_after AS time, s.key AS metric, s.value::float AS value\nFROM xcom x\nJOIN dag_run dr ON dr.id = x.dag_run_id\nCROSS JOIN LATERAL jsonb_each_text(x.value) s\nWHERE x.dag_id = 'nemo_helix_single_turn_eval_pipeline' AND x.task_id = 'get_scores' AND x.key = 'return_value'\n  AND $__timeFilter(dr.run_after)\nORDER BY 1;\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Mean Score per Run",
+      "transformations": [],
+      "transparent": false,
+      "type": "timeseries"
+    },
+    {
+      "cacheTimeout": null,
+      "color": {
+        "mode": "thresholds"
+      },
+      "columns": [],
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "airflow_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": ""
+        },
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 4,
+      "interval": null,
+      "links": [],
+      "mappings": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "airflow_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT\n  dr.run_id,\n  dr.state,\n  dr.start_date,\n  round(extract(epoch FROM dr.end_date - dr.start_date)) AS duration_s,\n  (scores.value ->> 'exact-match.exact-match')::float AS exact_match,\n  (scores.value ->> 'f1.f1')::float AS f1,\n  (job.value ->> 'scored')::int AS rows_scored,\n  (job.value ->> 'errored')::int AS rows_errored\nFROM dag_run dr\nLEFT JOIN xcom scores\n  ON scores.dag_run_id = dr.id AND scores.task_id = 'get_scores' AND scores.key = 'return_value'\nLEFT JOIN xcom job\n  ON job.dag_run_id = dr.id AND job.task_id = 'wait_for_job' AND job.key = 'return_value'\nWHERE dr.dag_id = 'nemo_helix_single_turn_eval_pipeline' AND $__timeFilter(dr.run_after)\nORDER BY dr.run_after DESC\nLIMIT 50;\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Recent Runs",
+      "transformations": [],
+      "transparent": false,
+      "type": "table"
+    },
+    {
+      "cacheTimeout": null,
+      "color": {
+        "mode": "thresholds"
+      },
+      "columns": [],
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "airflow_ds"
+      },
+      "description": null,
+      "editable": true,
+      "error": false,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": ""
+        },
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "height": null,
+      "hideTimeOverride": false,
+      "id": 5,
+      "interval": null,
+      "links": [],
+      "mappings": [],
+      "maxDataPoints": 100,
+      "maxPerRow": null,
+      "minSpan": null,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "repeat": null,
+      "repeatDirection": null,
+      "span": null,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "airflow_ds"
+          },
+          "expr": "",
+          "format": "table",
+          "hide": false,
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "query": "",
+          "rawQuery": true,
+          "rawSql": "\nSELECT task_id, round(avg(duration)::numeric, 1) AS avg_seconds, count(*) AS runs\nFROM task_instance\nWHERE dag_id = 'nemo_helix_single_turn_eval_pipeline' AND state = 'success' AND $__timeFilter(start_date)\nGROUP BY task_id\nORDER BY avg_seconds DESC;\n",
+          "refId": "A",
+          "step": 10,
+          "target": ""
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Average Task Duration",
+      "transformations": [],
+      "transparent": false,
+      "type": "table"
+    }
+  ],
+  "refresh": "30s",
+  "rows": [],
+  "schemaVersion": 12,
+  "sharedCrosshair": false,
+  "style": "dark",
+  "tags": [
+    "nemo-helix",
+    "airflow"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": false,
+    "nowDelay": null,
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "utc",
+  "title": "NeMo Helix Single-Turn Eval Pipeline",
+  "uid": "nemo_helix_single_turn_eval",
+  "version": 0
+}

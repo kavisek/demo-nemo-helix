@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "nemo-helix",
+      "Group": "Servers",
+      "Host": "helix-postgres",
+      "Port": 5432,
+      "MaintenanceDB": "helix",
+      "Username": "helix",
+      "SSLMode": "prefer"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: uv
+    directories: [/app, /grafana/dashboards-as-code]
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: pip
+    directory: /airflow
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directories: [/app, /airflow, /grafana]
+    schedule:
+      interval: weekly

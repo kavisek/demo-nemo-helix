@@ -1,0 +1,15 @@
+apiVersion: 1
+
+providers:
+  - name: 'Default'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    # Rescan every 10s, so `make dashboards` shows up without a restart in dev.
+    updateIntervalSeconds: 10
+    # Dashboards are code (dashboards-as-code/); the UI can't save over them.
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards
+      foldersFromFilesStructure: true

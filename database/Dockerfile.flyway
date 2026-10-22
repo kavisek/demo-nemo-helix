@@ -1,0 +1,4 @@
+# Flyway with this repo's migrations baked in. Compose dev bind-mounts
+# migrations/ over the copy; staging, prod, and kind run what was built.
+FROM flyway/flyway:13.10.3
+COPY migrations/ /flyway/sql/

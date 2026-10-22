@@ -1,0 +1,13 @@
+# Safe Synthesizer spec for nemo_helix_privacy_pipeline. The DAG sets data_source to
+# the redacted table and generation.num_records from its params. PII is already
+# redacted by the Anonymizer, so Safe Synthesizer's own PII replacement is off.
+# Needs a CUDA GPU: Helix on Docker Desktop rejects the job.
+config:
+  enable_synthesis: true
+  enable_replace_pii: false
+  generation:
+    num_records: 100
+  evaluation:
+    enabled: true
+  privacy:
+    dp_enabled: false

@@ -1,0 +1,5 @@
+# Python packages for DAG code, installed into the Airflow image at build time.
+# Pin versions. Check what a package drags in before adding it:
+#   uv pip compile --python-version 3.12 <(echo "pkg==x.y")
+# and reject anything that bumps click, celery, sqlalchemy, pydantic, or flask.
+# Heavy/ML libraries belong in PythonVirtualenvOperator or KubernetesPodOperator, not here.

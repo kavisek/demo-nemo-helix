@@ -1,0 +1,66 @@
+dataset: default/sample-qa-dataset#validation/validation.jsonl
+params:
+  parallelism: 2
+  limit_samples: 20
+  ignore_request_failure: false
+  max_retries: 3
+target:
+  url: http://localhost:8080/apis/inference-gateway/v2/workspaces/default/openai/-/v1/chat/completions
+  name: default/gemma4-e4b-mlx
+  format: openai
+prompt_template:
+  messages:
+  - role: system
+    content: 'Answer with only the final answer. For capitals reply exactly: The capital
+      of <country> is <city>.'
+  - role: user
+    content: '{{item.messages[0].content}}'
+metrics:
+- bundle_kind: metric-bundle
+  bundle_format_version: v1
+  metric_type: exact-match
+  metadata:
+    labels: {}
+  outputs:
+  - name: exact-match
+    value_json_schema:
+      description: Continuous numeric metric value.
+      title: ContinuousScore
+      type: number
+  secrets: {}
+  payload:
+    kind: inline
+    metric:
+      type: exact-match
+      description: null
+      labels: {}
+      supported_job_types:
+      - online
+      - offline
+      reference: '{{item.messages[1].content}}'
+      candidate: '{{sample.output_text}}'
+    digest: 6daef7ba398971c39bc52d44aacb3115e818240a6ee349b0b5ad264a387de590
+- bundle_kind: metric-bundle
+  bundle_format_version: v1
+  metric_type: f1
+  metadata:
+    labels: {}
+  outputs:
+  - name: f1
+    value_json_schema:
+      description: Continuous numeric metric value.
+      title: ContinuousScore
+      type: number
+  secrets: {}
+  payload:
+    kind: inline
+    metric:
+      type: f1
+      description: null
+      labels: {}
+      supported_job_types:
+      - online
+      - offline
+      reference: '{{item.messages[1].content}}'
+      candidate: '{{sample.output_text}}'
+    digest: c169060652af4f2e153a8b30a3bcf7513be59feeb5ef2241f06c304900d92f69

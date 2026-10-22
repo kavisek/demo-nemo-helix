@@ -1,0 +1,233 @@
+# Airflow 3 on Docker Compose: CeleryExecutor + Redis + PostgreSQL.
+# Parameterized so the same file runs dev, staging, and prod side by side.
+#
+# One project per environment (separate containers, network, and DB volume):
+#   docker compose -p airflow-<env> --env-file envs/<env>.env -f docker-compose.yml [-f docker-compose.dev.yml] up -d
+#
+# Everything that differs per environment comes from envs/<env>.env. Shell env
+# vars win over the env file, which is how `make` injects AIRFLOW_IMAGE_NAME.
+---
+x-airflow-common:
+  &airflow-common
+  image: ${AIRFLOW_IMAGE_NAME:?set AIRFLOW_IMAGE_NAME (make start sets it)}
+  environment:
+    &airflow-common-env
+    ENVIRONMENT: ${ENVIRONMENT:?set ENVIRONMENT in envs/<env>.env}
+    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${POSTGRES_PASSWORD}@postgres/airflow
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:${POSTGRES_PASSWORD}@postgres/airflow
+    AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+    AIRFLOW__CORE__FERNET_KEY: ${FERNET_KEY:-}
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: ${LOAD_EXAMPLES:-false}
+    # Airflow 3: workers run tasks through the Task Execution API on the api-server.
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
+    # Shared across every component, or task tokens fail "Signature verification failed".
+    AIRFLOW__API_AUTH__JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in envs/<env>.env}
+    AIRFLOW__API__SECRET_KEY: ${API_SECRET_KEY:?set API_SECRET_KEY in envs/<env>.env}
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
+    NEMO_HELIX_URL: ${NEMO_HELIX_URL:-http://host.docker.internal:7001}
+    NEMO_HELIX_WORKSPACE: ${NEMO_HELIX_WORKSPACE:-default}
+    # Browser URL of this Airflow, so Helix evaluations can link back to the DAG run.
+    AIRFLOW_UI_URL: http://localhost:${AIRFLOW_PORT:-7002}
+    # Dev-only escape hatch: reinstalled on EVERY container start. Bake real deps
+    # into the image via requirements.txt instead.
+    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+  volumes:
+    # Per-environment log dir so the three projects don't write into each other.
+    - ${AIRFLOW_LOGS_DIR:-./logs}:/opt/airflow/logs
+  user: "${AIRFLOW_UID:-50000}:0"
+  # Lets DAGs reach the nemo-helix API on the host's published port (Linux needs this; Docker Desktop has it built in).
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  depends_on:
+    &airflow-common-depends-on
+    redis:
+      condition: service_healthy
+    postgres:
+      condition: service_healthy
+  networks:
+    - network
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-7432}:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    networks:
+      - network
+
+  redis:
+    image: redis:7.2-bookworm
+    expose:
+      - 6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 50
+      start_period: 30s
+    restart: always
+    networks:
+      - network
+
+  airflow-apiserver:
+    <<: *airflow-common
+    command: api-server
+    ports:
+      - "127.0.0.1:${AIRFLOW_PORT:-7002}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  # Airflow 3 parses DAGs in a separate process. Without it: 0 DAGs.
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-worker:
+    <<: *airflow-common
+    command: celery worker
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - 'celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}" || celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"'
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    environment:
+      <<: *airflow-common-env
+      DUMB_INIT_SETSID: "0"
+    restart: always
+    deploy:
+      replicas: ${WORKER_REPLICAS:-1}
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-apiserver:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-triggerer:
+    <<: *airflow-common
+    command: triggerer
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  # Runs once: the image entrypoint migrates the DB (_AIRFLOW_DB_MIGRATE) and
+  # creates the admin user (_AIRFLOW_WWW_USER_CREATE), then exits 0.
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -v -p /opt/airflow/logs
+        chown -R "${AIRFLOW_UID:-50000}:0" /opt/airflow/logs
+        /entrypoint airflow version
+    environment:
+      <<: *airflow-common-env
+      _AIRFLOW_DB_MIGRATE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${ADMIN_USERNAME:-airflow}
+      _AIRFLOW_WWW_USER_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in envs/<env>.env}
+      _PIP_ADDITIONAL_REQUIREMENTS: ''
+    user: "0:0"
+    restart: "no"
+    depends_on:
+      <<: *airflow-common-depends-on
+
+  airflow-cli:
+    <<: *airflow-common
+    profiles:
+      - debug
+    environment:
+      <<: *airflow-common-env
+      CONNECTION_CHECK_MAX_COUNT: "0"
+    command:
+      - bash
+      - -c
+      - airflow
+
+  flower:
+    <<: *airflow-common
+    command: celery flower
+    profiles:
+      - flower
+    ports:
+      - "127.0.0.1:${FLOWER_PORT:-7005}:5555"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  postgres-db-volume:
+
+networks:
+  network:
+    driver: bridge

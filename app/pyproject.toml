@@ -1,0 +1,17 @@
+[project]
+name = "app"
+version = "0.1.0"
+license = "MIT"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "colorlog>=6.12.0",
+    "httpx>=0.28.1",
+    "nemo-helix[all]>=0.7.3",
+    "psycopg[binary]>=3.2",
+    "pytest>=9.0.2",
+    "pytest-black>=0.6.0",
+    "pytest-cov>=7.0.0",
+    "python-dotenv>=1.2.4",
+]

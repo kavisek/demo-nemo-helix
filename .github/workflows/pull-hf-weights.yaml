@@ -1,0 +1,120 @@
+name: Pull Hugging Face Weights
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: Hugging Face model repo to download
+        required: true
+        default: nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
+        type: choice
+        options:
+          - nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16
+          - nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
+          - nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-Base-BF16
+
+env:
+  REPO: ${{ inputs.repo }}
+  DOWNLOAD_DIR: /mnt/hf
+  DOWNLOADER_IMAGE: hf-download:local
+
+permissions:
+  contents: read
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost /usr/local/share/powershell /usr/share/swift
+          docker system prune -af
+          df -h / /mnt
+
+      - name: Check repo size against free space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          repo_bytes=$(curl -sf -H "Authorization: Bearer $HF_TOKEN" \
+            "https://huggingface.co/api/models/$REPO?blobs=true" \
+            | jq '[.siblings[].size // 0] | add')
+          sudo mkdir -p "$DOWNLOAD_DIR"
+          sudo chown "$(id -u):$(id -g)" "$DOWNLOAD_DIR"
+          free_bytes=$(df -B1 --output=avail "$DOWNLOAD_DIR" | tail -1)
+          echo "Repo size: $(echo "scale=2; $repo_bytes / 1024^3" | bc) GB"
+          echo "Free on $DOWNLOAD_DIR: $(echo "scale=2; $free_bytes / 1024^3" | bc) GB"
+          echo "REPO_BYTES=$repo_bytes" >> "$GITHUB_ENV"
+          if [ "$repo_bytes" -gt "$free_bytes" ]; then
+            echo "::error::Not enough disk space on $DOWNLOAD_DIR for $REPO"
+            exit 1
+          fi
+
+      - name: Build downloader image
+        run: docker build -t "$DOWNLOADER_IMAGE" -f app/Dockerfile.hf app
+
+      - name: Download weights
+        id: download
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          start=$(date +%s.%N)
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -e HF_TOKEN \
+            -v "$DOWNLOAD_DIR:/data" \
+            "$DOWNLOADER_IMAGE" "$REPO" --local-dir "/data/model"
+          end=$(date +%s.%N)
+          duration=$(echo "$end - $start" | bc)
+          echo "duration=$duration" >> "$GITHUB_OUTPUT"
+          echo "Download completed in ${duration}s"
+
+      - name: Report results
+        if: always()
+        env:
+          DURATION: ${{ steps.download.outputs.duration }}
+          DOWNLOAD_OUTCOME: ${{ steps.download.outcome }}
+        run: |
+          if [ -d "$DOWNLOAD_DIR/model" ]; then
+            size_bytes=$(du -sb --exclude=.cache "$DOWNLOAD_DIR/model" | cut -f1)
+            size_gb=$(echo "scale=2; $size_bytes / 1024^3" | bc)
+            file_count=$(find "$DOWNLOAD_DIR/model" -type f -not -path '*/.cache/*' | wc -l)
+          else
+            size_bytes=""
+            size_gb="n/a"
+            file_count="n/a"
+          fi
+          if [ -n "$DURATION" ]; then
+            duration_fmt=$(printf '%.1f' "$DURATION")
+            minutes=$(echo "$DURATION / 60" | bc)
+            seconds=$(printf '%.0f' "$(echo "$DURATION - $minutes * 60" | bc)")
+            human="${minutes}m ${seconds}s"
+            if [ -n "$size_bytes" ]; then
+              throughput=$(echo "scale=1; $size_bytes / 1024^2 / $DURATION" | bc)
+            else
+              throughput="n/a"
+            fi
+          else
+            duration_fmt="n/a"
+            human="n/a"
+            throughput="n/a"
+          fi
+          expected_gb=$( [ -n "$REPO_BYTES" ] && echo "scale=2; $REPO_BYTES / 1024^3" | bc || echo "n/a")
+          disk_free=$(df -h /mnt | awk 'NR==2 {print $4}')
+          {
+            echo "## Hugging Face Weights Download Results"
+            echo ""
+            echo "| Metric | Value |"
+            echo "|---|---|"
+            echo "| Repo | \`$REPO\` |"
+            echo "| Result | $DOWNLOAD_OUTCOME |"
+            echo "| Download time | ${duration_fmt}s ($human) |"
+            echo "| Downloaded size | ${size_gb} GB (expected ${expected_gb} GB) |"
+            echo "| Files | $file_count |"
+            echo "| Effective throughput | ${throughput} MB/s |"
+            echo "| Disk free on /mnt after download | $disk_free |"
+            echo "| Runner | ${{ runner.os }} / ${{ runner.arch }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat "$GITHUB_STEP_SUMMARY"

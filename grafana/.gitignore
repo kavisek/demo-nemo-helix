@@ -1,0 +1,3 @@
+envs/*.env
+dashboards-as-code/.venv/
+__pycache__/

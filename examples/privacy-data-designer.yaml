@@ -1,0 +1,95 @@
+# Generated from customer_notes.py by `make privacy-spec`. Do not edit by hand.
+# num_records is set by the DAG at submit time.
+config:
+  columns:
+  - name: id
+    drop: false
+    column_type: sampler
+    propagate_skip: true
+    sampler_type: uuid
+    params:
+      short_form: false
+      uppercase: false
+      sampler_type: uuid
+    conditional_params: {}
+  - name: customer
+    drop: true
+    column_type: sampler
+    propagate_skip: true
+    sampler_type: person_from_faker
+    params:
+      locale: en_US
+      age_range:
+      - 21
+      - 80
+      sampler_type: person_from_faker
+    conditional_params: {}
+  - name: product
+    drop: false
+    column_type: sampler
+    propagate_skip: true
+    sampler_type: category
+    params:
+      values:
+      - laptop
+      - phone
+      - router
+      sampler_type: category
+    conditional_params: {}
+  - name: plan
+    drop: false
+    column_type: sampler
+    propagate_skip: true
+    sampler_type: category
+    params:
+      values:
+      - basic
+      - plus
+      - business
+      sampler_type: category
+    conditional_params: {}
+  - name: sentiment
+    drop: false
+    column_type: sampler
+    propagate_skip: true
+    sampler_type: category
+    params:
+      values:
+      - frustrated
+      - neutral
+      - happy
+      sampler_type: category
+    conditional_params: {}
+  - name: age
+    drop: false
+    column_type: expression
+    propagate_skip: true
+    expr: '{{ customer.age }}'
+    dtype: int
+  - name: state
+    drop: false
+    column_type: expression
+    propagate_skip: true
+    expr: '{{ customer.state }}'
+    dtype: str
+  - name: note
+    drop: false
+    column_type: llm-text
+    propagate_skip: true
+    prompt: Write a two-sentence {{ sentiment }} support agent note about a customer on the
+      {{ plan }} plan with a {{ product }} problem. Mention the customer's full name {{ customer.first_name
+      }} {{ customer.last_name }}, their email {{ customer.email_address }}, their phone number
+      {{ customer.phone_number }}, and that they live in {{ customer.city }}. Return only
+      the note.
+    model_alias: text
+    with_trace: none
+    extract_reasoning_content: false
+  model_configs:
+  - alias: text
+    model: gemma4:e4b-mlx
+    inference_parameters:
+      generation_type: chat-completion
+      max_parallel_requests: 4
+    provider: default/ollama
+    skip_health_check: false
+  tool_configs: []

@@ -1,0 +1,148 @@
+name: nemo-helix
+
+x-bootstrap-env: &bootstrap-env
+  HELIX_WORKSPACE: default
+  DATASET_NAME: sample-qa-dataset
+  SINGLE_TURN_DATASET: single-turn-evals
+  MULTI_TURN_DATASET: multi-turn-evals
+  PROVIDER_NAME: ollama
+
+x-bootstrap-healthcheck: &bootstrap-healthcheck
+  test: ["CMD", "test", "-f", "/tmp/healthy"]
+  interval: 30s
+  timeout: 3s
+  start_period: 600s
+  start_interval: 2s
+  retries: 1
+
+services:
+  # Helix's platform database (workspaces, jobs, filesets, experiments, models, secrets, members).
+  # Without DATABASE_URL Helix falls back to SQLite in NEMO_DATA_DIR.
+  helix-postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${HELIX_DB_USER:-helix}
+      POSTGRES_PASSWORD: ${HELIX_DB_PASSWORD:-helix}
+      POSTGRES_DB: ${HELIX_DB_NAME:-helix}
+    ports:
+      - "127.0.0.1:${HELIX_DB_PORT:-7450}:5432"
+    volumes:
+      - helix-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${HELIX_DB_USER:-helix} -d ${HELIX_DB_NAME:-helix}"]
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
+      start_interval: 1s
+      retries: 10
+
+  # Browse the Helix database at http://localhost:7006. The server is pre-registered;
+  # pgAdmin asks for its password (HELIX_DB_PASSWORD, default helix) on first connect.
+  pgadmin:
+    image: dpage/pgadmin4:9.18.0
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "127.0.0.1:${PGADMIN_PORT:-7006}:80"
+    volumes:
+      - ./pgadmin-servers.json:/pgadmin4/servers.json:ro
+      - helix-pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      helix-postgres:
+        condition: service_healthy
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:26.3
+    environment:
+      CLICKHOUSE_DB: intake
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    ports:
+      - "7123:8123"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      start_period: 30s
+      start_interval: 1s
+      retries: 20
+
+  nemo-helix:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: nemo-helix-app:local
+    command: ["nemo", "services", "run", "--host", "0.0.0.0", "--port", "8080"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      <<: *bootstrap-env
+      NHX_DATA_DIR: ${NEMO_DATA_DIR:?set NEMO_DATA_DIR or use make start}
+      NHX_INTAKE_CLICKHOUSE_URL: http://clickhouse:8123
+      # Loads app/runtime/sitecustomize.py, a workaround for Helix's asyncpg pool bug.
+      PYTHONPATH: /app/runtime
+      DATABASE_URL: postgresql://${HELIX_DB_USER:-helix}:${HELIX_DB_PASSWORD:-helix}@helix-postgres:5432/${HELIX_DB_NAME:-helix}
+      NEMO_TELEMETRY_ENABLED: "false"
+    ports:
+      - "7001:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${NEMO_DATA_DIR}:${NEMO_DATA_DIR}
+      - ./examples:/examples:ro
+    group_add:
+      - "${DOCKER_GID:-0}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      helix-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health/ready')"]
+      interval: 10s
+      timeout: 5s
+      start_period: 120s
+      start_interval: 2s
+      retries: 30
+
+  data-generator:
+    image: nemo-helix-app:local
+    command: ["python", "-m", "app.data_generator"]
+    environment:
+      <<: *bootstrap-env
+      HELIX_URL: http://nemo-helix:8080
+      EVAL_ROWS: "50"
+    depends_on:
+      nemo-helix:
+        condition: service_healthy
+    healthcheck: *bootstrap-healthcheck
+
+  model-setup:
+    image: nemo-helix-app:local
+    command: ["python", "-m", "app.model_setup"]
+    environment:
+      <<: *bootstrap-env
+      HELIX_URL: http://nemo-helix:8080
+      PROVIDER_URL: ${OLLAMA_URL:-http://host.docker.internal:11434/v1}
+      PROVIDER_MODELS: ${OLLAMA_MODELS:-gemma4:e4b-mlx}
+    depends_on:
+      nemo-helix:
+        condition: service_healthy
+    healthcheck: *bootstrap-healthcheck
+
+volumes:
+  clickhouse-data:
+  helix-postgres-data:
+  helix-pgadmin-data:

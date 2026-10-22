@@ -1,0 +1,20 @@
+# Anonymizer spec for nemo_helix_privacy_pipeline. The DAG sets data.source to the
+# notes Data Designer generated. Every detection role runs on the local Ollama model,
+# so no NVIDIA Build key is needed (examples/anonymizer-run.yaml uses hosted GLiNER instead).
+config:
+  replace:
+    kind: redact
+    format_template: "[REDACTED_{label}]"
+data:
+  text_column: note
+  data_summary: Customer support agent notes that mention the customer's name, email, phone, and city.
+model_configs:
+  - alias: gemma4
+    provider: default/ollama
+    model: gemma4:e4b-mlx
+selected_models:
+  detection:
+    entity_detector: gemma4
+    entity_validator: gemma4
+    entity_augmenter: gemma4
+    latent_detector: gemma4

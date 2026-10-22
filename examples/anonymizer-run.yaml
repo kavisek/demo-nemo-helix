@@ -1,0 +1,21 @@
+config:
+  replace:
+    kind: redact
+    format_template: "[REDACTED_{label}]"
+data:
+  source: default/anonymizer-inputs#customers.csv
+  text_column: note
+  id_column: id
+model_configs:
+  - alias: gliner-pii-detector
+    provider: default/nvidia-build
+    model: nvidia/gliner-pii
+  - alias: gemma4
+    provider: default/ollama
+    model: gemma4:e4b-mlx
+selected_models:
+  detection:
+    entity_detector: gliner-pii-detector
+    entity_validator: gemma4
+    entity_augmenter: gemma4
+    latent_detector: gemma4

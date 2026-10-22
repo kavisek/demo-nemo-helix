@@ -1,0 +1,65 @@
+# Multi-turn eval: each multi-turn-evals row's messages (user, assistant, user) are sent
+# as the chat history, and the reply to the last user turn is scored against
+# item.reference. A bare {{ item.messages }} keeps the list instead of a string.
+# Derived from eval-qa.yaml; each digest is sha256 of its metric as canonical JSON.
+dataset: default/multi-turn-evals#evals.jsonl
+params:
+  parallelism: 2
+  limit_samples: 20
+  ignore_request_failure: false
+  max_retries: 3
+target:
+  url: http://localhost:8080/apis/inference-gateway/v2/workspaces/default/openai/-/v1/chat/completions
+  name: default/gemma4-e4b-mlx
+  format: openai
+prompt_template:
+  messages: '{{ item.messages }}'
+metrics:
+- bundle_kind: metric-bundle
+  bundle_format_version: v1
+  metric_type: exact-match
+  metadata:
+    labels: {}
+  outputs:
+  - name: exact-match
+    value_json_schema:
+      description: Continuous numeric metric value.
+      title: ContinuousScore
+      type: number
+  secrets: {}
+  payload:
+    kind: inline
+    metric:
+      type: exact-match
+      description: null
+      labels: {}
+      supported_job_types:
+      - online
+      - offline
+      reference: '{{item.reference}}'
+      candidate: '{{sample.output_text}}'
+    digest: 68607e07aed58c86aeb70c9573c0bf123dfb1227d6b3b2b02b433725365f08ca
+- bundle_kind: metric-bundle
+  bundle_format_version: v1
+  metric_type: f1
+  metadata:
+    labels: {}
+  outputs:
+  - name: f1
+    value_json_schema:
+      description: Continuous numeric metric value.
+      title: ContinuousScore
+      type: number
+  secrets: {}
+  payload:
+    kind: inline
+    metric:
+      type: f1
+      description: null
+      labels: {}
+      supported_job_types:
+      - online
+      - offline
+      reference: '{{item.reference}}'
+      candidate: '{{sample.output_text}}'
+    digest: e47a06e324edc4c3e6566fac9b0fb69f680cf4bc3923db9a768386f894178067

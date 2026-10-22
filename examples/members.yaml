@@ -1,0 +1,15 @@
+# Desired members of each NeMo Studio workspace, applied by the sync-members DAG.
+# Roles: Viewer, Editor, Admin. The DAG adds missing members and fixes roles;
+# members not listed here are only removed when the DAG runs with prune=true.
+workspaces:
+  default:
+    - principal: ada.lovelace@example.com
+      roles: [Admin]
+    - principal: grace.hopper@example.com
+      roles: [Editor]
+    - principal: alan.turing@example.com
+      roles: [Editor]
+    - principal: katherine.johnson@example.com
+      roles: [Viewer]
+    - principal: linus.torvalds@example.com
+      roles: [Viewer]
