@@ -36,8 +36,9 @@ services:
       start_interval: 1s
       retries: 10
 
-  # Browse the Helix database at http://localhost:7006. The server is pre-registered;
-  # pgAdmin asks for its password (HELIX_DB_PASSWORD, default helix) on first connect.
+  # Browse the Helix, Airflow, and Grafana databases at http://localhost:7006. The servers in
+  # pgadmin-servers.json are re-imported on every start; pgAdmin asks for each password on
+  # first connect (make start prints them). Airflow and Grafana are reached on their host ports.
   pgadmin:
     image: dpage/pgadmin4:9.18.0
     environment:
@@ -45,6 +46,9 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "127.0.0.1:${PGADMIN_PORT:-7006}:80"
     volumes:

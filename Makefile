@@ -1,5 +1,10 @@
 NEMO_DATA_DIR ?= $(CURDIR)/.nemo-data
 DOCKER_GID ?= $(shell stat -c %g /var/run/docker.sock 2>/dev/null || echo 0)
+dotenv = $(shell grep -E '^$(1)=' .env 2>/dev/null | cut -d= -f2-)
+HELIX_DB_USER ?= $(or $(call dotenv,HELIX_DB_USER),helix)
+HELIX_DB_PASSWORD ?= $(or $(call dotenv,HELIX_DB_PASSWORD),helix)
+HELIX_DB_NAME ?= $(or $(call dotenv,HELIX_DB_NAME),helix)
+HELIX_DB_PORT ?= $(or $(call dotenv,HELIX_DB_PORT),7450)
 
 LONG_RUNNING_SERVICES = helix-postgres clickhouse nemo-helix pgadmin
 BOOTSTRAP_SERVICES = data-generator model-setup
@@ -20,11 +25,29 @@ start: helix-up airflow-up grafana-up
 	@echo "Services Started Successfully!"
 	@echo "=========================================="
 	@echo ""
+	@echo "Helix Postgres:"
+	@$(call row,host,localhost:$(HELIX_DB_PORT))
+	@$(call row,username,$(HELIX_DB_USER))
+	@$(call row,password,$(HELIX_DB_PASSWORD))
+	@$(call row,database,$(HELIX_DB_NAME))
+	@echo ""
+	@echo "Airflow $(ENV) Postgres:"
+	@$(call row,host,localhost:$(or $(call envval,POSTGRES_PORT),7432))
+	@$(call row,username,airflow)
+	@$(call row,password,$(call envval,POSTGRES_PASSWORD))
+	@$(call row,database,airflow)
+	@echo ""
+	@echo "Grafana $(ENV) Postgres:"
+	@$(call row,host,localhost:$(or $(call genvval,POSTGRES_PORT),7440))
+	@$(call row,username,postgres)
+	@$(call row,password,$(call genvval,POSTGRES_PASSWORD))
+	@$(call row,database,postgres)
+	@echo ""
 	@echo "Service Ports:"
 	@$(call row,nemo-helix API,http://localhost:7001)
 	@$(call row,nemo-helix Studio,http://localhost:7001/studio/)
 	@$(call row,clickhouse,http://localhost:7123)
-	@$(call row,helix postgres,localhost:7450)
+	@$(call row,helix postgres,localhost:$(HELIX_DB_PORT))
 	@$(call row,helix pgadmin,http://localhost:7006)
 	@$(call row,airflow,http://localhost:$(or $(call envval,AIRFLOW_PORT),7002))
 	@$(call row,airflow postgres,localhost:$(or $(call envval,POSTGRES_PORT),7432))

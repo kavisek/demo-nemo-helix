@@ -1,12 +1,30 @@
 {
   "Servers": {
     "1": {
-      "Name": "nemo-helix",
+      "Name": "Helix Postgres",
       "Group": "Servers",
       "Host": "helix-postgres",
       "Port": 5432,
       "MaintenanceDB": "helix",
       "Username": "helix",
+      "SSLMode": "prefer"
+    },
+    "2": {
+      "Name": "Airflow Postgres",
+      "Group": "Servers",
+      "Host": "host.docker.internal",
+      "Port": 7432,
+      "MaintenanceDB": "airflow",
+      "Username": "airflow",
+      "SSLMode": "prefer"
+    },
+    "3": {
+      "Name": "Grafana Postgres",
+      "Group": "Servers",
+      "Host": "host.docker.internal",
+      "Port": 7440,
+      "MaintenanceDB": "postgres",
+      "Username": "postgres",
       "SSLMode": "prefer"
     }
   }

@@ -102,10 +102,14 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?set PGADMIN_PASSWORD in envs/<env>.env}
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "127.0.0.1:${PGADMIN_PORT:-7004}:80"
     volumes:
-      # Pre-registers the postgres server (password is asked on first connect).
+      # Registers the Grafana, Helix, and Airflow servers on every start (passwords are
+      # asked on first connect); Helix and Airflow are reached on their host ports.
       - ./pgadmin-servers.json:/pgadmin4/servers.json:ro
       - pgadmin-data:/var/lib/pgadmin
     depends_on:
