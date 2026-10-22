@@ -1,4 +1,4 @@
-# demo-runai-nemo-helix
+# demo-nemo-helix
 
 Local NeMo Helix deployment using Docker Compose.
 
@@ -194,7 +194,7 @@ make nemo ARGS="models list"
 make nemo-shell
 ```
 
-The alias takes precedence over any `nemo` installed on your host, such as `~/.local/bin/nemo`. To have the alias in every new terminal, add `eval "$(make -s -C /path/to/demo-runai-nemo-helix alias)"` to `~/.zshrc`. The examples below assume the alias is loaded.
+The alias takes precedence over any `nemo` installed on your host, such as `~/.local/bin/nemo`. To have the alias in every new terminal, add `eval "$(make -s -C /path/to/demo-nemo-helix alias)"` to `~/.zshrc`. The examples below assume the alias is loaded.
 
 Every command defaults to the `default` workspace. Add `-f json` for JSON output.
 
