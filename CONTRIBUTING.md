@@ -1,4 +1,4 @@
-# Contributing to demo-runai-nemo-helix
+# Contributing to demo-nemo-helix
 
 Thanks for your interest in contributing!
 
@@ -7,8 +7,8 @@ Thanks for your interest in contributing!
 You need Docker (with Compose v2), GNU Make, and [uv](https://docs.astral.sh/uv/). [Ollama](https://ollama.com/) is used as the default model provider.
 
 ```sh
-git clone https://github.com/kavisek/demo-runai-nemo-helix.git
-cd demo-runai-nemo-helix
+git clone https://github.com/kavisek/demo-nemo-helix.git
+cd demo-nemo-helix
 cp .env.example .env          # optional; fill in only the keys you need
 make start                    # NeMo Helix, Airflow, and Grafana; prints every port and login
 ```
