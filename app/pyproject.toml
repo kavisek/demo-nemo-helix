@@ -10,8 +10,8 @@ dependencies = [
     "httpx>=0.28.1",
     "nemo-helix[all]>=0.7.3",
     "psycopg[binary]>=3.2",
-    "pytest>=9.0.2",
+    "pytest>=9.1.1",
     "pytest-black>=0.6.0",
-    "pytest-cov>=7.0.0",
+    "pytest-cov>=7.1.0",
     "python-dotenv>=1.2.4",
 ]
